@@ -9,8 +9,10 @@
     <link rel="stylesheet" href="css/app.css">
 </head>
 
-<body oncontextmenu="return false;">
+<body onload="init()" oncontextmenu="return false;">
     <h1>MINESWEEPER</h1>
+    <div class="game-state" onclick="init()"></div>
+    <div class="timer"></div>
     <table>
         <tbody class="board"></tbody>
     </table>
