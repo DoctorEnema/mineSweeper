@@ -1,0 +1,28 @@
+.cell {
+    background-color: gold;
+    width: 70px;
+    height: 70px
+}
+
+.revealed {
+    background-color: salmon;
+    text-align: center;
+    font-size: xx-large;
+}
+
+.mine{
+    margin: auto;
+    background-color: black;
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    
+}
+
+.marked{
+    margin: auto;
+    background-color: darkred;
+    height: 60px;
+    width: 30px;
+    border-radius: 30px;
+}
