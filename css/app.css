@@ -1,13 +1,41 @@
+h1 {
+    color: steelblue;
+    text-align: center;
+}
+
+table {
+    margin: auto;
+}
+
 .cell {
-    background-color: gold;
+    background-color: royalblue;
     width: 70px;
     height: 70px
 }
 
+.cell:hover {
+    background-color: darkblue;
+}
+
 .revealed {
-    background-color: salmon;
+    background-color: rgb(99, 208, 235);
     text-align: center;
     font-size: xx-large;
+}
+
+.revealed:hover {
+    background-color: rgb(99, 208, 235);
+    ;
+}
+
+.cell img {
+    width: 60px;
+    height: 60px;
+}
+
+img {
+    width: 70px;
+    height: 70px;
 }
 
 .mine {
@@ -20,10 +48,31 @@
 
 .marked {
     margin: auto;
-    background-color: darkred;
     height: 60px;
     width: 30px;
     border-radius: 30px;
+}
+
+.game-elements {
+    background-color: rgb(184, 126, 78);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+}
+
+.hint {
+    margin: auto;
+    color: whitesmoke;
+}
+
+.safe-click {
+    margin: auto;
+    color: whitesmoke;
+}
+
+.safe-cell {
+    background-color: mediumslateblue;
 }
 
 .game-state {
@@ -34,10 +83,66 @@
     margin: auto;
 }
 
-.timer{
+.timer {
+    margin: auto;
     font-size: xx-large;
     text-align: center;
-    height: 60px;
+    height: 1.5em;
     width: 60px;
+    padding: 5px;
     margin: auto;
+    background-color: #ffd755;
+    border: whitesmoke solid 5px;
+}
+
+.settings {
+    margin: auto;
+}
+
+.high-score {
+    margin: auto;
+    font-size: large;
+    text-align: center;
+    height: 1.3em;
+    width: 40px;
+    padding: 5px;
+    margin: auto;
+    background-color: #ffd755;
+    border: coral solid 5px;
+}
+
+.trophy img {
+    height: 50px;
+    width: 50px;
+}
+
+.difficulty {
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    transform: translate(-50%, -50%);
+    background-color: cornflowerblue;
+    border-radius: 50px;
+    width: 400px;
+    height: 70px;
+    text-align: center;
+    font-size: x-large;
+    overflow: hidden;
+    display: none;
+}
+
+.difficulty div {
+    background-color: powderblue;
+    width: 28%;
+    height: 2em;
+    margin: 10px;
+    line-height: 2em;
+    border-radius: 30px;
+    float: left;
+}
+
+footer {
+    text-align: center;
+    font-size: x-large;
+    color: cornflowerblue;
 }
