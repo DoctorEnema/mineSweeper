@@ -10,27 +10,30 @@
 </head>
 
 <body onload="init()" oncontextmenu="return false;">
-    <h1>Mine Sweeper</h1>
-    <div class="game-elements">
-        <div class="hint" onclick="activateHint()"></div>
-        <div class="safe-click" onclick="safeClick()"><img src="img/ms_halo.png" /></div>
-        <div class="game-state" onclick="init()"></div>
-        <div class="timer"></div>
-        <div class="settings" onclick="openSettings()"><img src="img/ms_settings.png" /></div>
-        <div class="trophy"><img src="img/ms_trophy.png" />
-            <div class="high-score"></div>
+    <div class="background">
+        <h1>Mine Sweeper</h1>
+        <div class="game-elements">
+            <div class="hint" onclick="activateHint()"></div>
+            <div class="safe-click" onclick="safeClick()"><img src="img/ms_halo.png" /></div>
+            <div class="game-state" onclick="init()"></div>
+            <div class="timer"></div>
+            <div class="manual-mode" onclick="manuallyPlace()"><img src="img/ms_bp1.png" /></div>
+            <div class="trophy"><img src="img/ms_trophy.png" />
+                <div class="high-score"></div>
+            </div>
+            <div class="settings" onclick="openSettings()"><img src="img/ms_settings.png" /></div>
         </div>
-    </div>
-    <div class="difficulty">
-        <div onclick="gLevel.size = 4,gLevel.mines = 2, init()">Easy</div>
-        <div onclick="gLevel.size = 8,gLevel.mines = 12, init()">Medium</div>
-        <div onclick="gLevel.size = 12,gLevel.mines = 30, init()">Hard</div>
-    </div>
-    <table>
-        <tbody class="board"></tbody>
-    </table>
+        <div class="difficulty">
+            <div onclick="gLevel = difficulty()[0], init()">Easy</div>
+            <div onclick="gLevel = difficulty()[1], init()">Medium</div>
+            <div onclick="gLevel = difficulty()[2], init()">Hard</div>
+        </div>
+        <table>
+            <tbody class="board"></tbody>
+        </table>
 
-    <footer>Made by Meidan Yona</footer>
+        <footer>Made by Meidan Yona</footer>
+    </div>
 
 
     <script src="js/game.js"></script>

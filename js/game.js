@@ -2,6 +2,12 @@
 
 const MINE = '<img src="img/ms_mine2.png" />'
 const MARKED = '<img src="img/ms_flag.png" />'
+const HINT_ON = '<img src="img/ms_hinton.png" />'
+const HINT_OFF = '<img src="img/ms_hintoff.png" />'
+const SAFE_CLICK = '<img src="img/ms_halo.png" />'
+const MANUAL_OFF = '<img src="img/ms_bp1.png" />'
+const MANUAL_ON = '<img src="img/ms_bp2.png" />'
+const MANUAL_CONFIRM = '<img src="img/ms_v.png" />'
 
 var gBoard;
 var gLevel = {
@@ -19,11 +25,14 @@ var gGame = {
     safeClick: 3,
     score: 0,
 }
-var gSettingsState
+var gSettings
+var gManualMode
 var gTimer
 var gFirstTurn = true
 var gHintActive = false
 var gHighScore = 0
+var gMinePlaced = false
+var gCurrMines
 
 function init() {
     gLevel.size
@@ -39,11 +48,16 @@ function init() {
     gGame.markedCount = 0
     gGame.lives = 3
     gGame.hints = 3
+    gGame.safeClick = 3
     gGame.score = 0
     gHintActive = false
-    document.querySelector('.hint').innerHTML = '<img src="img/ms_hintoff.png" />' + gGame.hints
-    gGame.safeClick = 3
-    document.querySelector('.safe-click').innerHTML = '<img src="img/ms_halo.png" />' + gGame.safeClick
+    gManualMode = false
+    gMinePlaced = false
+    gSettings = false
+    document.querySelector('.difficulty').style.display = 'none'
+    document.querySelector('.manual-mode').innerHTML = MANUAL_OFF
+    document.querySelector('.hint').innerHTML = HINT_OFF + gGame.hints
+    document.querySelector('.safe-click').innerHTML = SAFE_CLICK + gGame.safeClick
     document.querySelector('.high-score').innerText = localStorage.getItem('highScore')
 
     clearInterval(gTimer)
@@ -54,20 +68,35 @@ function init() {
 function cellClicked(i, j) {
     if (!gGame.isOn) return
     var targetCell = gBoard[i][j]
+    var shownCell = { i: i, j: j }
 
-    if (gFirstTurn === true) {
+    if (gManualMode) {
+        targetCell.isMine = true
+        renderCell(shownCell, 'revealed', MINE)
+        gMinePlaced = true
+        gLevel.mines++
+        document.querySelector('.manual-mode').innerHTML = MANUAL_CONFIRM
+        return
+    }
+
+    if (gFirstTurn && !gMinePlaced) {
+        if (!gLevel.mines) gLevel.mines = gCurrMines
         randomizeMines(gLevel.mines, gBoard, targetCell)
         checkAllNegs(gBoard)
         gameTimer()
+        gFirstTurn = false
     }
-    gFirstTurn = false
+    if (gFirstTurn && gMinePlaced) {
+        checkAllNegs(gBoard)
+        gameTimer()
+        gFirstTurn = false
+    }
 
     if (gHintActive) {
         displayHint(i, j, gBoard)
         return
     }
 
-    var renderedCell = { i: i, j: j }
     if (targetCell.isShown) return
     if (targetCell.isMarked) return
 
@@ -75,18 +104,18 @@ function cellClicked(i, j) {
     gGame.shownCount++
     gGame.score += 10
 
-    setMinesNegsCount(i, j, gBoard)
+    if (!targetCell.isMine && targetCell.minesAroundCount === null) setMinesNegsCount(i, j, gBoard)
 
     var minesNum = targetCell.minesAroundCount
 
-    if (!targetCell.isMine) renderCell(renderedCell, 'revealed', minesNum)
-    if (!minesNum) renderCell(renderedCell, 'revealed', null)
+    if (!targetCell.isMine) renderCell(shownCell, 'revealed', minesNum)
+    if (!minesNum) renderCell(shownCell, 'revealed', null)
     if (targetCell.isMine) {
-        renderCell(renderedCell, 'revealed', MINE)
+        renderCell(shownCell, 'revealed', MINE)
         gGame.lives--
         setTimeout(function () {
             targetCell.isShown = false
-            renderCell(renderedCell, 'revealed', null, true)
+            renderCell(shownCell, 'revealed', null, true)
             gGame.shownCount--
             gGame.score -= 10
         }, 1000)
@@ -106,11 +135,18 @@ function cellMarked(i, j) {
     var targetCell = gBoard[i][j]
     var renderedCell = { i: i, j: j }
     if (event.which === 3) {
-        if (gFirstTurn) {
-            gameTimer()
-            randomizeMines(gLevel.mines, gBoard)
+        if (gFirstTurn && !gMinePlaced) {
+            randomizeMines(gLevel.mines, gBoard, targetCell)
             checkAllNegs(gBoard)
+            gameTimer()
+            gFirstTurn = false
         }
+        if (gFirstTurn && gMinePlaced) {
+            checkAllNegs(gBoard)
+            gameTimer()
+            gFirstTurn = false
+        }
+
         if (targetCell.isShown) return
         targetCell.isMarked ? targetCell.isMarked = false : targetCell.isMarked = true
         if (targetCell.isMarked) renderCell(renderedCell, null, MARKED)
@@ -135,54 +171,31 @@ function setMinesNegsCount(cellI, cellJ, board) {
             if (cellJ === j && cellI === i) continue
             if (j < 0 || j >= board[i].length) continue
 
-            var minesNum = board[cellI][cellJ].minesAroundCount
+            if (board[i][j].isMarked) {
+                !board[i][j].isMarked
+                gGame.mark--
+            }
 
-            if (!board[cellI][cellJ].minesAroundCount) {
-                if (board[i][j].isMarked === true) continue
-                if (!board[i][j].isShown) {
-                    gGame.shownCount++
-                    gGame.score += 10
-                }
+            if (board[i][j].isMine || board[i][j].isShown) continue
+            else {
                 renderCell({ i: i, j: j }, 'revealed', gBoard[i][j].minesAroundCount)
                 board[i][j].isShown = true
+                gGame.shownCount++
+                gGame.score += 10
             }
+            if (board[i][j].minesAroundCount === null) setMinesNegsCount(i, j, board)
+
         }
     }
-    return minesNum
-}
-
-function checkGameOver(victory) {
-    gGame.isOn = false
-    clearInterval(gTimer)
-    if (!victory) {
-        for (var i = 0; i < gBoard.length; i++) {
-            for (var j = 0; j < gBoard.length; j++) {
-                if (gBoard[i][j].isMine) renderCell({ i: i, j: j }, 'revealed', MINE)
-            }
-        }
-        gGame.state = '<img src="img/ms_dead.png" />'
-    }
-    else gGame.state = '<img src="img/ms_win.png" />'
-    document.querySelector('.game-state').innerHTML = gGame.state
-    gGame.score += 100
-    if (gGame.score >= gHighScore) gHighScore = gGame.score
-    localStorage.setItem('highScore', gHighScore)
-
-}
-
-function gameTimer() {
-    gTimer = setInterval(function () {
-        gGame.secsPassed++, document.querySelector('.timer').innerHTML = gGame.secsPassed
-    }, 1000)
 }
 
 function activateHint() {
     if (gGame.hints === 0) return
     !gHintActive ? gHintActive = true : gHintActive = false
     if (gHintActive) {
-        document.querySelector('.hint').innerHTML = '<img src="img/ms_hinton.png" />' + gGame.hints
+        document.querySelector('.hint').innerHTML = HINT_ON + gGame.hints
     } else {
-        document.querySelector('.hint').innerHTML = '<img src="img/ms_hintoff.png" />' + gGame.hints
+        document.querySelector('.hint').innerHTML = HINT_OFF + gGame.hints
     }
 }
 
@@ -216,7 +229,7 @@ function displayHint(cellI, cellJ, board) {
                 if (board[i][j].isMarked) renderCell({ i: i, j: j }, 'revealed', MARKED, true)
             }
         }
-        document.querySelector('.hint').innerHTML = '<img src="img/ms_hintoff.png" />' + gGame.hints
+        document.querySelector('.hint').innerHTML = HINT_OFF + gGame.hints
     }, 1000)
 }
 
@@ -233,12 +246,43 @@ function safeClick() {
         }
     }
     var safeIdx = getRandomIntInclusive(0, safeCellsI.length)
-    renderCell({ i: safeCellsI[safeIdx], j: safeCellsJ[safeIdx] }, 'safe-cell', '<img src="img/ms_halo.png" />')
+    var safeCellI = safeCellsI[safeIdx]
+    var safeCellJ = safeCellsJ[safeIdx]
+    if(safeCellsI.length === 0) return
+    renderCell({ i: safeCellI, j: safeCellJ }, 'safe-cell', SAFE_CLICK)
+    gGame.safeClick--
+    document.querySelector('.safe-click').innerHTML = SAFE_CLICK + gGame.safeClick
     setTimeout(function () {
-        renderCell({ i: safeCellsI[safeIdx], j: safeCellsJ[safeIdx] }, 'safe-cell', null, true)
-        gGame.safeClick--
-        document.querySelector('.safe-click').innerHTML = '<img src="img/ms_halo.png" />' + gGame.safeClick
+        renderCell({ i: safeCellI, j: safeCellJ }, 'safe-cell', null, true)
+        if (gBoard[safeCellI][safeCellJ].isShown) {
+            renderCell({ i: safeCellI, j: safeCellJ }, 'safe-cell', gBoard[safeCellI][safeCellJ].minesAroundCount, true)
+        }
     }, 1500)
 }
 
+
+function checkGameOver(victory) {
+    gGame.isOn = false
+    clearInterval(gTimer)
+    if (!victory) {
+        for (var i = 0; i < gBoard.length; i++) {
+            for (var j = 0; j < gBoard.length; j++) {
+                if (gBoard[i][j].isMine) renderCell({ i: i, j: j }, 'revealed', MINE)
+            }
+        }
+        gGame.state = '<img src="img/ms_dead.png" />'
+    }
+    else gGame.state = '<img src="img/ms_win.png" />'
+    document.querySelector('.game-state').innerHTML = gGame.state
+    gGame.score += 100
+    if (gGame.score >= gHighScore) gHighScore = gGame.score
+    localStorage.setItem('highScore', gHighScore)
+
+}
+
+function gameTimer() {
+    gTimer = setInterval(function () {
+        gGame.secsPassed++, document.querySelector('.timer').innerHTML = gGame.secsPassed
+    }, 1000)
+}
 
